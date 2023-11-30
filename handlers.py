@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from states import get_state_form, TeacherForm
 from keyboards import main_kb, cansel_form_kb, next_kb
 from callback import CheckBoxFactory, RadioFactory, NextCallbackFactory
+from smtp import send_email
 
 router = Router()
 
@@ -58,8 +59,6 @@ async def process_name(message: types.Message, state: FSMContext) -> None:
     form_state, curr_state = (el for el in received_state.split(':'))
     form = get_state_form(form_state)
 
-    print(curr_state)
-
     await state.update_data({curr_state: message.text})
 
     next_state = form.next_state(curr_state)
@@ -73,7 +72,8 @@ async def process_name(message: types.Message, state: FSMContext) -> None:
         )
     else:
         data = await state.get_data()
-        print(data)
+        content = form.pack_data_for_email(data=data)
+        await send_email(data=content)
 
 
 @form_router.message(TeacherForm.choice_online_platforms)

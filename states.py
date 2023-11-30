@@ -23,14 +23,53 @@ def get_state_form(form_name: str):
 class MyRootForm(StatesGroup):
 
     @classmethod
-    def next_state(cls, curr_state):
+    def get_states(cls):
         states = [state_name.split(':')[1] for state_name in cls.__all_states_names__]
+        return states
+
+    @classmethod
+    def next_state(cls, curr_state):
+        states = cls.get_states()
         curr_index = states.index(curr_state)
         if curr_index + 1 == len(states):
             return False
         else:
             return states[curr_index + 1]
 
+    @classmethod
+    def pack_data_for_email(cls, data):
+        message = ''
+
+        if hasattr(cls, 'params'):
+            for count, state in enumerate(data.keys(), start=1):
+                question = cls.params[state]['quest']
+                answer = ''
+
+                if isinstance(data[state], list):
+                    if len(data[state]) > 1:
+                        for el in data[state]:
+                            answer += f'\t\t- {el}\n'
+
+                        message += (
+                            f"{count}. {question}\n"
+                            f"\tОтвет: \n{answer}\n"
+                        )
+                        continue
+
+                    else:
+                        answer += data[state][0]
+                elif isinstance(data[state], str):
+                    answer += data[state]
+                elif isinstance(data[state], int):
+                    answer += str(data[state])
+
+                message += (
+                    f"{count}. {question}\n"
+                    f"\tОтвет: {answer}\n"
+                    f"\n"
+                )
+
+            return message
 
 class TeacherForm(MyRootForm):
     name = State()
@@ -150,4 +189,10 @@ class TeacherForm(MyRootForm):
 
 
 if __name__ == '__main__':
+    print(TeacherForm.get_states())
     print(TeacherForm.next_state('subjects'))
+    test = {'name': 'asdfsdf', 'subjects': ['Белорусский язык', 'Русский язык', 'Английский язык'], 'class_number': ['10', '5', '6'], 'work_experience': ['более 20'],
+     'count_hours': '23', 'place_work': 'asdfsdf', 'doc': ['KonstantinPiniazikResume.pdf'], 'about_me': 'asdfsdf',
+     'experience': ['Да'], 'online_platforms': ['Я затрудняюсь ответить', 'Zoom'],
+     'choice_online_platforms': ['Я затрудняюсь ответить'], 'email_or_phone': 'asdfsdf'}
+    print(TeacherForm.pack_data_for_email(data=test))

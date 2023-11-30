@@ -10,7 +10,7 @@ WEB_SERVER_HOST = '0.0.0.0'
 WEB_SERVER_PORT = 8080
 WEBHOOK_PATH = '/webhook'
 WEBHOOK_SECRET = 'my-secret'
-BASE_WEBHOOK_URL = 'https://f8ef-37-214-56-135.ngrok.io'
+BASE_WEBHOOK_URL = 'https://0a31-37-214-56-135.ngrok.io'
 
 
 async def on_startup(bot: Bot):
