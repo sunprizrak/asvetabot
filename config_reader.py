@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     email_port: int
     email_user: str
     email_pass: SecretStr
+    email_to: str
 
     class Config:
         env_file = '.env'

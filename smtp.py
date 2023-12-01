@@ -20,7 +20,6 @@ async def send_email(data):
 
             content = await bot.download_file(doc_data[list(doc_data)[0]])
 
-            # Сохраняем содержимое файла в указанную директорию
             with open(os.path.join('./download', list(doc_data)[0]), 'wb') as file:
                 file.write(content.getvalue())  # Сохраняем содержимое файла
 
@@ -34,7 +33,7 @@ async def send_email(data):
 
     msg['Subject'] = 'tg @asveta.by'
     msg['From'] = config.email_user
-    msg['To'] = 'sunprizrak@gmail.com'
+    msg['To'] = config.email_to
 
     with smtplib.SMTP(host=config.email_host, port=config.email_port) as smtp:
         smtp.starttls()
