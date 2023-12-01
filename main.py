@@ -1,19 +1,26 @@
 import logging
-from aiogram import Bot, Dispatcher
-from handlers import router, form_router
+from aiogram import Dispatcher, types
+from aiogram.fsm.context import FSMContext
 from config_reader import config
 from aiohttp import web
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-
-TOKEN = config.bot_token.get_secret_value()
-WEB_SERVER_HOST = '0.0.0.0'
-WEB_SERVER_PORT = 8080
-WEBHOOK_PATH = '/webhook'
-WEBHOOK_SECRET = 'my-secret'
-BASE_WEBHOOK_URL = 'https://0a31-37-214-56-135.ngrok.io'
+from handlers import main_router, form_router
+from states import TeacherForm
+from bot import get_bot
 
 
-async def on_startup(bot: Bot):
+WEB_SERVER_HOST = config.web_server_host
+WEB_SERVER_PORT = config.web_server_port
+WEBHOOK_PATH = config.webhook_path
+WEBHOOK_SECRET = config.webhook_secret
+BASE_WEBHOOK_URL = config.base_webhook_url
+
+
+bot = get_bot()
+app = web.Application()
+
+
+async def on_startup():
     await bot.set_webhook(
         url=f'{BASE_WEBHOOK_URL}{WEBHOOK_PATH}',
         secret_token=WEBHOOK_SECRET,
@@ -24,13 +31,10 @@ async def on_startup(bot: Bot):
 def main() -> None:
     dp = Dispatcher()
 
-    dp.include_router(router)
+    dp.include_router(main_router)
     dp.include_router(form_router)
 
     dp.startup.register(on_startup)
-
-    bot = Bot(token=TOKEN)
-    app = web.Application()
 
     webhook_request_handler = SimpleRequestHandler(
         dispatcher=dp,

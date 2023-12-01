@@ -4,6 +4,11 @@ from pydantic import SecretStr
 
 class Settings(BaseSettings):
     bot_token: SecretStr
+    web_server_host: str
+    web_server_port: int
+    webhook_path: str
+    webhook_secret: str
+    base_webhook_url: str
     email_host: str
     email_port: int
     email_user: str

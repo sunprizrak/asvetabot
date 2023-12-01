@@ -5,8 +5,8 @@ from callback import NextCallbackFactory
 
 def main_kb() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
-    kb.button(text='📝 Анкета для ученика 👨‍🎓')
-    kb.button(text='📝 Анкета для учителя 👨‍🏫')
+    kb.button(text='Подобрать группу 👥')
+    kb.button(text='Анкета для учителя 👨‍🏫')
     kb.adjust(2)
     return kb.as_markup(
         resize_keyboard=True,
@@ -32,7 +32,7 @@ def next_kb() -> InlineKeyboardMarkup:
     )
 
 
-def checkbox_and_radio_kb(res: list, adjust: int, factory, data: list = None) -> InlineKeyboardMarkup:
+def checkbox_and_radio_kb(res: list, adjust: int | tuple, factory, data: list = None) -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
 
     for answer in res:
@@ -46,7 +46,10 @@ def checkbox_and_radio_kb(res: list, adjust: int, factory, data: list = None) ->
 
     kb.button(text='Далее', callback_data=NextCallbackFactory(next=True))
 
-    kb.adjust(adjust)
+    if isinstance(adjust, tuple):
+        kb.adjust(*adjust)
+    elif isinstance(adjust, int):
+        kb.adjust(adjust)
 
     return kb.as_markup(
         resize_keyboard=True,

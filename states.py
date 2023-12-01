@@ -1,7 +1,31 @@
 from aiogram.fsm.state import StatesGroup, State
-
 from callback import CheckBoxFactory, RadioFactory
-from keyboards import cansel_form_kb, checkbox_and_radio_kb
+from keyboards import cansel_form_kb, checkbox_and_radio_kb, main_kb
+from smtp import send_email
+
+
+async def close_state(message, state, form):
+    data = await state.get_data()
+    content = form.pack_data_for_email(data=data)
+
+    if 'doc' in data:
+        doc = data['doc']
+        send_data = {'text': content, 'doc': doc}
+    else:
+        send_data = {'text': content}
+
+    sent = await send_email(data=send_data)
+
+    if sent:
+        text = form.params['end_state']['text']
+
+        await message.answer(
+            show_alert=True,
+            text=text,
+            reply_markup=main_kb()
+        )
+
+    await state.clear()
 
 
 def get_state_form(form_name: str):
@@ -48,8 +72,10 @@ class MyRootForm(StatesGroup):
                 if isinstance(data[state], list):
                     if len(data[state]) > 1:
                         for el in data[state]:
-                            answer += f'\t\t- {el}\n'
-
+                            if type(el) is dict:
+                                answer += f'\t\t- {list(el)[0]}\n'
+                            else:
+                                answer += f'\t\t- {el}\n'
                         message += (
                             f"{count}. {question}\n"
                             f"\tОтвет: \n{answer}\n"
@@ -57,7 +83,10 @@ class MyRootForm(StatesGroup):
                         continue
 
                     else:
-                        answer += data[state][0]
+                        if type(data[state][0]) is dict:
+                            answer += list(data[state][0])[0]
+                        else:
+                            answer += data[state][0]
                 elif isinstance(data[state], str):
                     answer += data[state]
                 elif isinstance(data[state], int):
@@ -70,6 +99,7 @@ class MyRootForm(StatesGroup):
                 )
 
             return message
+
 
 class TeacherForm(MyRootForm):
     name = State()
@@ -111,7 +141,7 @@ class TeacherForm(MyRootForm):
             'keyboard': lambda data=None: checkbox_and_radio_kb(
                             data=data,
                             res=['5', '6', '7', '8', '9', '10', '11'],
-                            adjust=3,
+                            adjust=(3, 3, 1, 1),
                             factory=CheckBoxFactory,
                         )
         },
@@ -161,7 +191,7 @@ class TeacherForm(MyRootForm):
                                 'Я затрудняюсь ответить',
                                 'Другое',
                             ],
-                            adjust=1,
+                            adjust=(1, 2, 2, 1, 1),
                             factory=CheckBoxFactory,
                         )
         },
@@ -177,7 +207,7 @@ class TeacherForm(MyRootForm):
                                 'Я затрудняюсь ответить',
                                 'Другое',
                             ],
-                            adjust=1,
+                            adjust=(1, 2, 2, 1, 1),
                             factory=CheckBoxFactory,
                         )
         },
@@ -185,6 +215,70 @@ class TeacherForm(MyRootForm):
             'quest': 'Оставьте, пожалуйста, свои контактные данные для обратной связи (email, номер телефона)',
             'keyboard': lambda: cansel_form_kb(),
         },
+        'end_state': {
+            'text': 'Aнкета отправлена',
+        }
+    }
+
+
+class SelectGroupForm(MyRootForm):
+    subject = State()
+    class_number = State()
+    time = State()
+    name = State()
+    email_or_phone = State()
+
+    params = {
+        'subject': {
+            'quest': 'Выберите предмет',
+            'keyboard': lambda data=None: checkbox_and_radio_kb(
+                data=data,
+                res=[
+                    'Aнглийский',
+                    'Беларуская',
+                    'Гісторыя',
+                    'География',
+                    'Математика',
+                    'Физика',
+                    'Химия',
+                ],
+                adjust=1,
+                factory=RadioFactory,
+            )
+        },
+        'class_number': {
+            'quest': 'Выберите класс',
+            'keyboard': lambda data=None: checkbox_and_radio_kb(
+                data=data,
+                res=['1-4', '5', '6', '7', '8', '9', '10-11'],
+                adjust=1,
+                factory=RadioFactory,
+            )
+        },
+        'time': {
+            'quest': 'Выберите удобное время',
+            'keyboard': lambda data=None: checkbox_and_radio_kb(
+                data=data,
+                res=[
+                    '08፡30 - 13፡00',
+                    '13፡00 - 18፡00',
+                    '18፡00 - 22፡00',
+                ],
+                adjust=1,
+                factory=RadioFactory,
+            )
+        },
+        'name': {
+            'quest': 'Как к вам обратиться',
+            'keyboard': lambda: cansel_form_kb(),
+        },
+        'email_or_phone': {
+            'quest': 'Контактные данные (email, телефон)',
+            'keyboard': lambda: cansel_form_kb(),
+        },
+        'end_state': {
+            'text': 'Заявка на обучение отправлена.\n Мы с вами свяжемся, как только подберем подходящий вариант',
+        }
     }
 
 

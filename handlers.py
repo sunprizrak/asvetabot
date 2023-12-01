@@ -2,20 +2,22 @@ import logging
 from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from states import get_state_form, TeacherForm
+from states import get_state_form, TeacherForm, close_state, SelectGroupForm
 from keyboards import main_kb, cansel_form_kb, next_kb
 from callback import CheckBoxFactory, RadioFactory, NextCallbackFactory
-from smtp import send_email
-
-router = Router()
+from bot import get_bot
 
 
-@router.message(Command('start'))
-async def cmd_start(message: types.Message):
-    await message.answer(f"Hello, {message.from_user.full_name}!", reply_markup=main_kb())
-
-
+main_router = Router()
 form_router = Router()
+
+
+@main_router.message(Command('start'))
+async def cmd_start(message: types.Message):
+    await message.answer(
+        text=f"Hello, {message.from_user.full_name}!",
+        reply_markup=main_kb()
+    )
 
 
 @form_router.message(Command('прекратить анкету'))
@@ -30,17 +32,25 @@ async def cansel_profile(message: types.Message, state: FSMContext) -> None:
 
     await state.clear()
     await message.answer(
-        'анкета прекращена',
+        'Анкета прекращена',
         reply_markup=main_kb(),
     )
 
 
-@form_router.message(F.text.lower() == '📝 анкета для ученика 👨‍🎓')
+@form_router.message(F.text.lower() == 'подобрать группу 👥')
 async def student_profile(message: types.Message, state: FSMContext):
-    await message.reply(text='Ваше: Фамилия, Имя, Отчество')
+    await state.set_state(SelectGroupForm.subject)
+    await message.answer(
+        text='ツ',
+        reply_markup=cansel_form_kb(),
+    )
+    await message.answer(
+        text=SelectGroupForm.params['subject']['quest'],
+        reply_markup=SelectGroupForm.params['subject']['keyboard']()
+    )
 
 
-@form_router.message(F.text.lower() == '📝 анкета для учителя 👨‍🏫')
+@form_router.message(F.text.lower() == 'анкета для учителя 👨‍🏫')
 async def teacher_profile(message: types.Message, state: FSMContext) -> None:
     await state.set_state(TeacherForm.name)
     await message.answer(
@@ -49,12 +59,14 @@ async def teacher_profile(message: types.Message, state: FSMContext) -> None:
     )
 
 
+@form_router.message(SelectGroupForm.email_or_phone)
+@form_router.message(SelectGroupForm.name)
 @form_router.message(TeacherForm.email_or_phone)
 @form_router.message(TeacherForm.about_me)
 @form_router.message(TeacherForm.place_work)
 @form_router.message(TeacherForm.count_hours)
 @form_router.message(TeacherForm.name)
-async def process_name(message: types.Message, state: FSMContext) -> None:
+async def process_text(message: types.Message, state: FSMContext) -> None:
     received_state = await state.get_state()
     form_state, curr_state = (el for el in received_state.split(':'))
     form = get_state_form(form_state)
@@ -71,9 +83,7 @@ async def process_name(message: types.Message, state: FSMContext) -> None:
             reply_markup=form.params[next_state]['keyboard']()
         )
     else:
-        data = await state.get_data()
-        content = form.pack_data_for_email(data=data)
-        await send_email(data=content)
+        await close_state(message=message, state=state, form=form)
 
 
 @form_router.message(TeacherForm.choice_online_platforms)
@@ -110,29 +120,33 @@ async def process_checkbox_and_ratio(message: types.Message, state: FSMContext) 
 
 
 @form_router.message(TeacherForm.doc)
-async def process_document(message: types.Message, state: FSMContext) -> None:
+async def process_document(message: types.Document, state: FSMContext) -> None:
     data = await state.get_data()
 
     if hasattr(message.document, 'file_name'):
-        file = types.FSInputFile(message.document.file_name)
+        file_id = message.document.file_id
+        file_name = message.document.file_name
+        bot = get_bot()
+        file = await bot.get_file(file_id)
+        file_path = file.file_path
 
         if data.get('doc'):
-            if file.path in data['doc']:
-                data['doc'].remove(file.path)
+            if file_path in data['doc']:
+                data['doc'].remove({file_name: file_path})
                 await state.update_data(doc=data['doc'])
             else:
-                data['doc'].append(file.path)
+                data['doc'].append({file_name: file_path})
                 await state.update_data(doc=data['doc'])
         else:
-            data['doc'] = [file.path]
+            data['doc'] = [{file_name: file_path}]
             await state.update_data(doc=data['doc'])
 
         data = await state.get_data()
 
         message_text = 'Загруженные документы:\n'
 
-        for number, file_path in enumerate(data['doc'], start=1):
-            message_text += f'\t{number}. {file_path}\n'
+        for number, data_file in enumerate(data['doc'], start=1):
+            message_text += f"\t{number}. {list(data_file)[0]}\n"
 
         await message.answer(
             text=message_text,
@@ -144,7 +158,7 @@ async def process_document(message: types.Message, state: FSMContext) -> None:
             reply_markup=cansel_form_kb(),
         )
 
-# ----------------------- <<  Callback >>  -----------------------
+# ----------------------- <<Callback_query >>  -----------------------
 
 
 @form_router.callback_query(NextCallbackFactory.filter())
@@ -157,12 +171,16 @@ async def check_next_button(callback: types.CallbackQuery, callback_data: NextCa
 
     if callback_data.next and data.get(curr_state):
         next_state = form.next_state(curr_state)
-        await state.set_state(f'{form_state}:{next_state}')
 
-        await callback.message.answer(
-            text=form.params[next_state]['quest'],
-            reply_markup=form.params[next_state]['keyboard'](),
-        ),
+        if next_state:
+            await state.set_state(f'{form_state}:{next_state}')
+
+            await callback.message.answer(
+                text=form.params[next_state]['quest'],
+                reply_markup=form.params[next_state]['keyboard'](),
+            ),
+        else:
+            await close_state(message=callback.message, state=state, form=form)
     elif callback_data.next and not data.get(curr_state):
         await callback.message.answer(
             text='Выполните предложенные действия!'
@@ -224,7 +242,7 @@ async def check_radio_buttons(callback: types.CallbackQuery, callback_data: Radi
 
     await callback.message.edit_reply_markup(
         inline_message_id=callback.id,
-        reply_markup=form.params[curr_state]['keyboard'](data=data[curr_state])
+        reply_markup=form.params[curr_state]['keyboard'](data=data[curr_state]),
     )
 
     await callback.answer()
