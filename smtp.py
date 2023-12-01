@@ -21,7 +21,7 @@ async def send_email(data):
             content = await bot.download_file(doc_data[list(doc_data)[0]])
 
             with open(os.path.join('./download', list(doc_data)[0]), 'wb') as file:
-                file.write(content.getvalue())  # Сохраняем содержимое файла
+                file.write(content.getvalue())
 
             with open(os.path.join('./download', list(doc_data)[0]), "rb") as doc_file:
                 doc_part = MIMEApplication(doc_file.read(), Name=list(doc_data)[0])
