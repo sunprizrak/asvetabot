@@ -1,5 +1,3 @@
-from typing import ClassVar
-
 from aiogram.filters.callback_data import CallbackData
 
 

@@ -9,7 +9,6 @@ from email.mime.application import MIMEApplication
 
 
 async def send_email(data):
-
     if data.get('doc'):
         bot = get_bot()
 
@@ -48,28 +47,4 @@ async def send_email(data):
 
     return True
 
-
-# async def send_document_by_email(document_path, recipient_email, smtp_server, smtp_port, smtp_username, smtp_password):
-#     # Создаем объект MIMEMultipart
-#     msg = MIMEMultipart()
-#
-#     # Добавляем текстовое сообщение
-#
-#
-#     # Читаем содержимое файла документа
-#
-#
-#     # Добавляем документ к сообщению
-#     msg.attach(document_part)
-#
-#     # Настраиваем параметры SMTP-сервера
-#     smtp_server = smtplib.SMTP(smtp_server, smtp_port)
-#     smtp_server.starttls()
-#     smtp_server.login(smtp_username, smtp_password)
-#
-#     # Отправляем сообщение
-#     smtp_server.sendmail(smtp_username, recipient_email, msg.as_string())
-#
-#     # Завершаем соединение с SMTP-сервером
-#     smtp_server.quit()
 

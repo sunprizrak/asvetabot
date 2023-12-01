@@ -1,11 +1,9 @@
 import logging
-from aiogram import Dispatcher, types
-from aiogram.fsm.context import FSMContext
+from aiogram import Dispatcher
 from config_reader import config
 from aiohttp import web
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from handlers import main_router, form_router
-from states import TeacherForm
 from bot import get_bot
 
 

@@ -96,7 +96,7 @@ async def process_checkbox_and_ratio(message: types.Message, state: FSMContext) 
     if ',' in message.text:
         items = [elem.strip() for elem in message.text.split(",")]
     else:
-        items = [elem.strip() for elem in message.text.split()]
+        items = [message.text]
 
     data = await state.get_data()
 
