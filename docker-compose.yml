@@ -4,5 +4,8 @@ services:
     asveta_bot:
         build: .
         command: python3 main.py
+        restart: always
+        stdin_open: true
+        tty: true
         ports:
             - "8080:8080"
