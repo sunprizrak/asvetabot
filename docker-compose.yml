@@ -1,0 +1,8 @@
+version: '3.9'
+
+services:
+    asveta_bot:
+        build: .
+        command: python3 main.py
+        ports:
+            - "8080:8080"
