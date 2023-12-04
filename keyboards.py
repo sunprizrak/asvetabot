@@ -25,7 +25,7 @@ def cansel_form_kb() -> ReplyKeyboardMarkup:
 def next_kb() -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
 
-    kb.button(text='Далее', callback_data=NextCallbackFactory(next=True))
+    kb.button(text='==== Далее ====', callback_data=NextCallbackFactory(next=True))
 
     return kb.as_markup(
         resize_keyboard=True,
@@ -44,7 +44,7 @@ def checkbox_and_radio_kb(res: list, adjust: int | tuple, factory, data: list = 
         else:
             kb.button(text=answer, callback_data=factory(field=answer))
 
-    kb.button(text='Далее', callback_data=NextCallbackFactory(next=True))
+    kb.button(text='==== Далее ====', callback_data=NextCallbackFactory(next=True))
 
     if isinstance(adjust, tuple):
         kb.adjust(*adjust)

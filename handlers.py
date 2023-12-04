@@ -15,7 +15,7 @@ form_router = Router()
 @main_router.message(Command('start'))
 async def cmd_start(message: types.Message):
     await message.answer(
-        text=f"Hello, {message.from_user.full_name}!",
+        text=f"Здравствуйте, {message.from_user.full_name}!",
         reply_markup=main_kb()
     )
 
@@ -41,7 +41,7 @@ async def cansel_profile(message: types.Message, state: FSMContext) -> None:
 async def student_profile(message: types.Message, state: FSMContext):
     await state.set_state(SelectGroupForm.subject)
     await message.answer(
-        text='ツ',
+        text='Выберите предмет',
         reply_markup=cansel_form_kb(),
     )
     await message.answer(

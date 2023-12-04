@@ -230,7 +230,7 @@ class SelectGroupForm(MyRootForm):
 
     params = {
         'subject': {
-            'quest': 'Выберите предмет',
+            'quest': 'из списка:',
             'keyboard': lambda data=None: checkbox_and_radio_kb(
                 data=data,
                 res=[
@@ -242,7 +242,7 @@ class SelectGroupForm(MyRootForm):
                     'Физика',
                     'Химия',
                 ],
-                adjust=1,
+                adjust=(2, 2, 2, 1),
                 factory=RadioFactory,
             )
         },
@@ -251,7 +251,7 @@ class SelectGroupForm(MyRootForm):
             'keyboard': lambda data=None: checkbox_and_radio_kb(
                 data=data,
                 res=['1-4', '5', '6', '7', '8', '9', '10-11'],
-                adjust=1,
+                adjust=(2, 2, 2, 1),
                 factory=RadioFactory,
             )
         },
