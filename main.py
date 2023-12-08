@@ -23,7 +23,6 @@ async def on_startup():
         url=f'{BASE_WEBHOOK_URL}{WEBHOOK_PATH}',
         secret_token=WEBHOOK_SECRET,
         allowed_updates=["message", "callback_query"],
-        certificate=open('/app/ssl/fullchain.pem', 'rb'),
     )
 
 

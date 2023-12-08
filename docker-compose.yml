@@ -7,16 +7,28 @@ services:
         restart: always
         stdin_open: true
         tty: true
+        expose:
+            - "8000"
+    nginx:
+        build: ./nginx
+        volumes:
+            - ./data/certbot/conf:/etc/letsencrypt
+            - ./data/certbot/www:/var/www/certbot
         ports:
-            - "80:8080"
+            - "80:80"
+            - "443:443"
+        stdin_open: true
+        tty: true
+        command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+        restart: always
+        depends_on:
+            - asveta_bot
+    certbot:
+        image: certbot/certbot
+        restart: unless-stopped
         volumes:
-            - ./ssl:/app/ssl
-    acme_sh:
-        image: acmesh/acme.sh
-        volumes:
-            - ./ssl:/acme.sh
-        command: >
-            --issue -d bot.asveta.by --standalone \
-            --install-cert -d bot.asveta.by \
-            --key-file /acme.sh/private.key \
-            --fullchain-file /acme.sh/fullchain.pem
+            - ./data/certbot/conf:/etc/letsencrypt
+            - ./data/certbot/www:/var/www/certbot
+        stdin_open: true
+        tty: true
+        entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
