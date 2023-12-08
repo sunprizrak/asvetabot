@@ -9,3 +9,14 @@ services:
         tty: true
         ports:
             - "80:8080"
+        volumes:
+            - ./ssl:/app/ssl
+    acme_sh:
+        image: acmesh/acme.sh
+        volumes:
+            - ./ssl:/acme.sh
+        command: >
+            --issue -d bot.asveta.by --standalone \
+            --install-cert -d bot.asveta.by \
+            --key-file /acme.sh/private.key \
+            --fullchain-file /acme.sh/fullchain.pem
