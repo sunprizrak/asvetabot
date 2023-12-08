@@ -1,6 +1,6 @@
 #!/bin/bash
 
-domains=(bot.asveta.by www.bot.asveta.by)
+domains=(bot.asveta.by)
 rsa_key_size=4096
 data_path="./data/certbot"
 email="asveta_bot@inbox.lv" # Adding a valid address is strongly recommended
