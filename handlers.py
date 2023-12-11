@@ -1,3 +1,4 @@
+import re
 import logging
 from aiogram import Router, F, types
 from aiogram.filters import Command
@@ -246,3 +247,20 @@ async def check_radio_buttons(callback: types.CallbackQuery, callback_data: Radi
     )
 
     await callback.answer()
+
+# TODO: use that for possible email checking
+async def process_email(message: types.Message, state: FSMContext) -> None:
+    email = message.text.strip()
+
+    # Regular expression pattern to validate email format
+    email_pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+
+    if re.match(email_pattern, email):
+        # Valid email format
+        await process_text(message, state)
+    else:
+        # Invalid email format
+        await message.answer(
+            text='Отправляемое сообщение должно быть имейлом!',
+            reply_markup=cansel_form_kb(),
+        )

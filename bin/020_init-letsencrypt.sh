@@ -1,10 +1,37 @@
 #!/bin/bash
 
-domains=(bot.asveta.by)
+# Load environment variables from .env file
+if [[ -f .env ]]; then
+    export $(cat .env | sed 's/#.*//g' | xargs)
+fi
+
 rsa_key_size=4096
 data_path="./data/certbot"
-email="asveta_bot@inbox.lv" # Adding a valid address is strongly recommended
 staging=0 # Set to 1 if you're testing your setup to avoid hitting request limits
+
+# Check if domains and email variables are set in the environment
+if [[ -z $domains ]]; then
+    echo "Error: 'domains' variable not set in the .env file."
+    exit 1
+fi
+
+if [[ -z $email ]]; then
+    echo "Error: 'email' variable not set in the .env file."
+    exit 1
+fi
+
+# Convert domains to an array
+IFS=',' read -ra domains_array <<< "$domains"
+
+# Iterate over the domains array
+for domain in "${domains_array[@]}"; do
+    echo "Processing domain: $domain"
+
+    # Your logic for processing each domain goes here
+
+done
+
+exit 1
 
 if [ -d "$data_path" ]; then
   read -p "Existing data found for $domains. Continue and replace existing certificate? (y/N) " decision

@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-    asveta_bot:
+    sunpr_bot_service:
         build: .
         command: python3 main.py
         restart: always
@@ -22,7 +22,7 @@ services:
         command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
         restart: always
         depends_on:
-            - asveta_bot
+            - sunpr_bot_service
     certbot:
         image: certbot/certbot
         restart: unless-stopped
