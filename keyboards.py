@@ -7,6 +7,7 @@ def main_kb() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
     kb.button(text='Подобрать группу 👥')
     kb.button(text='Анкета для учителя 👨‍🏫')
+    kb.button(text='Обратиться к методисту')
     kb.adjust(2)
     return kb.as_markup(
         resize_keyboard=True,

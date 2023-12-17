@@ -6,6 +6,7 @@ from states import get_state_form, TeacherForm, close_state, SelectGroupForm
 from keyboards import main_kb, cansel_form_kb, next_kb
 from callback import CheckBoxFactory, RadioFactory, NextCallbackFactory
 from bot import get_bot
+from config_reader import config
 
 
 main_router = Router()
@@ -16,7 +17,38 @@ form_router = Router()
 async def cmd_start(message: types.Message):
     await message.answer(
         text=f"Здравствуйте, {message.from_user.full_name}!",
-        reply_markup=main_kb()
+        reply_markup=main_kb(),
+    )
+
+
+@main_router.message(F.text.casefold() == 'обратиться к методисту')
+async def info(message: types.Message):
+    metodist_tg = config.metodist_tg
+
+    await message.answer(
+        text=f'Для связи с методистом {metodist_tg}',
+    )
+
+
+@main_router.message(F.text.lower() == 'подобрать группу 👥')
+async def student_profile(message: types.Message, state: FSMContext):
+    await state.set_state(SelectGroupForm.subject)
+    await message.answer(
+        text='Выберите предмет',
+        reply_markup=cansel_form_kb(),
+    )
+    await message.answer(
+        text=SelectGroupForm.params['subject']['quest'],
+        reply_markup=SelectGroupForm.params['subject']['keyboard']()
+    )
+
+
+@main_router.message(F.text.lower() == 'анкета для учителя 👨‍🏫')
+async def teacher_profile(message: types.Message, state: FSMContext) -> None:
+    await state.set_state(TeacherForm.name)
+    await message.answer(
+        text=TeacherForm.params['name']['quest'],
+        reply_markup=TeacherForm.params['name']['keyboard'](),
     )
 
 
@@ -34,28 +66,6 @@ async def cansel_profile(message: types.Message, state: FSMContext) -> None:
     await message.answer(
         'Анкета прекращена',
         reply_markup=main_kb(),
-    )
-
-
-@form_router.message(F.text.lower() == 'подобрать группу 👥')
-async def student_profile(message: types.Message, state: FSMContext):
-    await state.set_state(SelectGroupForm.subject)
-    await message.answer(
-        text='Выберите предмет',
-        reply_markup=cansel_form_kb(),
-    )
-    await message.answer(
-        text=SelectGroupForm.params['subject']['quest'],
-        reply_markup=SelectGroupForm.params['subject']['keyboard']()
-    )
-
-
-@form_router.message(F.text.lower() == 'анкета для учителя 👨‍🏫')
-async def teacher_profile(message: types.Message, state: FSMContext) -> None:
-    await state.set_state(TeacherForm.name)
-    await message.answer(
-        text=TeacherForm.params['name']['quest'],
-        reply_markup=TeacherForm.params['name']['keyboard'](),
     )
 
 

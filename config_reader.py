@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     email_user: str
     email_pass: SecretStr
     email_to: str
+    metodist_tg: str
 
     class Config:
         env_file = '.env'
