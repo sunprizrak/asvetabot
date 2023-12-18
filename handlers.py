@@ -27,6 +27,7 @@ async def info(message: types.Message):
 
     await message.answer(
         text=f'Для связи с методистом {metodist_tg}',
+        reply_markup=main_kb(),
     )
 
 

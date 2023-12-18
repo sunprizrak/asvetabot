@@ -1,4 +1,5 @@
 import os
+import datetime
 import smtplib
 from email.message import EmailMessage
 from bot import get_bot
@@ -37,7 +38,7 @@ async def send_email(data):
         msg = EmailMessage()
         msg.set_content(data['text'])
 
-    msg['Subject'] = 'tg @asveta.by'
+    msg['Subject'] = '[Asveta TgBot] Анкета от ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
     msg['From'] = config.email_user
     msg['To'] = config.email_to
 
