@@ -6,7 +6,7 @@ import json
 class Admin:
     def __init__(self, **kwargs):
         self.id = config.admin_id
-        self.storage = os.path.join('home', 'storage', 'admin.json') if config.prod else os.path.join('admin.json')
+        self.storage = os.path.join('home', 'storage', 'admin.json') # if config.prod else os.path.join('admin.json')
 
         # if not os.path.isfile(self.storage):
         #     with open(self.storage, 'w') as file:
