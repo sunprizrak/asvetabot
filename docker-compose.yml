@@ -6,7 +6,7 @@ services:
         command: python3 main.py
         restart: always
         volumes:
-            - ./admin.json:/etc/asvetabot
+            - storage_data:/etc/asvetabot
         stdin_open: true
         tty: true
         expose:
@@ -34,3 +34,5 @@ services:
         stdin_open: true
         tty: true
         entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+volumes:
+    storage_data:
