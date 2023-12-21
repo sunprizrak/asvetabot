@@ -8,6 +8,10 @@ class Admin:
         self.id = config.admin_id
         self.storage = os.path.join('admin.json')
 
+        if not os.path.isfile(self.storage):
+            with open(self.storage, 'w') as file:
+                json.dump({}, file)
+
     def check_admin(self, message):
         status = False
 
@@ -17,19 +21,18 @@ class Admin:
         return status
 
     def save_value(self, data: dict):
-        if not os.path.isfile(self.storage):
-            with open(self.storage, 'w') as file:
-                json.dump({}, file)
+        try:
+            with open(self.storage, 'r+') as file:
+                storage = json.load(file)
+                file.seek(0)
 
-        with open(self.storage, 'r+') as file:
-            storage = json.load(file)
-            file.seek(0)
+                for el in data.keys():
+                    storage[el] = data[el]
 
-            for el in data.keys():
-                storage[el] = data[el]
-
-            json.dump(storage, file)
-            file.truncate()
+                json.dump(storage, file)
+                file.truncate()
+        except (FileNotFoundError, json.JSONDecodeError):
+            return
 
     def get_value(self, name: str):
         try:

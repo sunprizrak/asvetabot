@@ -58,6 +58,7 @@ async def methodist_nickname(message: types.Message, state: FSMContext):
 
         await state.clear()
 
+
 @admin_router.message(AdminForm.methodist_nickname)
 async def methodist_nickname_save(message: types.Message, state: FSMContext) -> None:
     nickname = message.text.strip()
