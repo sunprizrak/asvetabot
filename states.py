@@ -2,6 +2,7 @@ from aiogram.fsm.state import StatesGroup, State
 from callback import CheckBoxFactory, RadioFactory
 from keyboards import cansel_form_kb, checkbox_and_radio_kb, main_kb
 from smtp import send_email
+from utility import admin
 
 
 async def close_state(message, state, form):
@@ -22,7 +23,7 @@ async def close_state(message, state, form):
         await message.answer(
             show_alert=True,
             text=text,
-            reply_markup=main_kb()
+            reply_markup=main_kb(admin=True) if admin.check_admin(message) else main_kb(),
         )
 
     await state.clear()
@@ -280,6 +281,10 @@ class SelectGroupForm(MyRootForm):
             'text': 'Заявка на обучение отправлена.\n Мы с вами свяжемся, как только подберем подходящий вариант',
         }
     }
+
+
+class AdminForm(MyRootForm):
+    methodist_nickname = State()
 
 
 if __name__ == '__main__':

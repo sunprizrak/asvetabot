@@ -5,6 +5,8 @@ services:
         build: .
         command: python3 main.py
         restart: always
+        volumes:
+            - ./admin.json:/etc/asvetabot/admin.json
         stdin_open: true
         tty: true
         expose:

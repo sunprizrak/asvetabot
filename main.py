@@ -3,7 +3,7 @@ from aiogram import Dispatcher
 from config_reader import config
 from aiohttp import web
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from handlers import main_router, form_router
+from handlers import main_router, admin_router, form_router
 from bot import get_bot
 
 
@@ -30,6 +30,7 @@ def main() -> None:
     dp = Dispatcher()
 
     dp.include_router(main_router)
+    dp.include_router(admin_router)
     dp.include_router(form_router)
 
     dp.startup.register(on_startup)

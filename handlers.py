@@ -2,14 +2,16 @@ import logging
 from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from states import get_state_form, TeacherForm, close_state, SelectGroupForm
-from keyboards import main_kb, cansel_form_kb, next_kb
+from states import get_state_form, TeacherForm, close_state, SelectGroupForm, AdminForm
+from keyboards import main_kb, cansel_form_kb, next_kb, admin_kb, methodist_nickname_kb
 from callback import CheckBoxFactory, RadioFactory, NextCallbackFactory
 from bot import get_bot
 from config_reader import config
+from utility.admin import admin
 
 
 main_router = Router()
+admin_router = Router()
 form_router = Router()
 
 
@@ -17,17 +19,74 @@ form_router = Router()
 async def cmd_start(message: types.Message):
     await message.answer(
         text=f"Здравствуйте, {message.from_user.full_name}!",
-        reply_markup=main_kb(),
+        reply_markup=main_kb(admin=True) if admin.check_admin(message) else main_kb(),
     )
 
 
-@main_router.message(F.text.casefold() == 'обратиться к методисту')
-async def info(message: types.Message):
-    metodist_tg = config.metodist_tg
+@admin_router.message(F.text.casefold() == 'панель администратора')
+async def admin_panel(message: types.Message):
+    if admin.check_admin(message):
+        await message.answer(
+            text='Добро пожаловать в административную панель',
+            reply_markup=admin_kb(),
+        )
+
+
+@admin_router.message(F.text.casefold() == 'выход в меню')
+async def exit_to_menu(message: types.Message, state: FSMContext):
+    if admin.check_admin(message):
+        await message.answer(
+            text='Добро пожаловать в главное меню',
+            reply_markup=main_kb(admin=True) if admin.check_admin(message) else main_kb(),
+        )
+
+        await state.clear()
+
+
+@admin_router.message(F.text.casefold() == 'никнейм методиста')
+async def methodist_nickname(message: types.Message, state: FSMContext):
+    if admin.check_admin(message):
+        nickname = admin.get_value(name='methodist_nickname')
+
+        if not nickname:
+            nickname = '***'
+
+        await message.answer(
+            text=f'Текущий никнейм {nickname}',
+            reply_markup=methodist_nickname_kb(),
+        )
+
+        await state.clear()
+
+@admin_router.message(AdminForm.methodist_nickname)
+async def methodist_nickname_save(message: types.Message, state: FSMContext) -> None:
+    nickname = message.text.strip()
+
+    if nickname[0] != '@':
+        nickname = '@' + nickname
+
+    data = dict(methodist_nickname=nickname)
+
+    admin.save_value(data=data)
 
     await message.answer(
-        text=f'Для связи с методистом {metodist_tg}',
-        reply_markup=main_kb(),
+        text=f'никнейм обновлён {nickname}',
+        reply_markup=admin_kb(),
+    )
+
+    await state.clear()
+
+
+@main_router.message(F.text.casefold() == 'обратиться к методисту')
+async def info_methodist(message: types.Message):
+    nickname = admin.get_value('methodist_nickname')
+
+    if not nickname:
+        nickname = '***'
+
+    await message.answer(
+        text=f'Для связи с методистом {nickname}',
+        reply_markup=main_kb(admin=True) if admin.check_admin(message) else main_kb(),
     )
 
 
@@ -66,7 +125,7 @@ async def cansel_profile(message: types.Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer(
         'Анкета прекращена',
-        reply_markup=main_kb(),
+        reply_markup=main_kb(admin=True) if admin.check_admin(message) else main_kb(),
     )
 
 
@@ -170,6 +229,17 @@ async def process_document(message: types.Document, state: FSMContext) -> None:
         )
 
 # ----------------------- <<Callback_query >>  -----------------------
+
+
+@admin_router.callback_query(F.data == 'methodist_edit')
+async def methodist_nickname(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(AdminForm.methodist_nickname)
+
+    await callback.message.answer(
+        text='Введите новый никнейм',
+    )
+
+    await callback.answer()
 
 
 @form_router.callback_query(NextCallbackFactory.filter())
