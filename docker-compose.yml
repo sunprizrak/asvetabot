@@ -6,7 +6,7 @@ services:
         command: python3 main.py
         restart: always
         volumes:
-            - ./admin.json:/home/storage
+            - ./admin.json:/home/asvetabot
         stdin_open: true
         tty: true
         expose:
