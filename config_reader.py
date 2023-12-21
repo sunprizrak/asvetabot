@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     email_pass: SecretStr
     email_to: str
     admin_id: int
+    prod: int
 
     class Config:
         env_file = '.env'
